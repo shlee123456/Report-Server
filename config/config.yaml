@@ -1,0 +1,26 @@
+system:
+  hostname: auto  # auto = detect automatically
+
+collection:
+  sample_interval: 86400  # 1 day in seconds
+  retention_months: 12
+
+report:
+  output_dir: reports
+  filename_format: "server_report_{hostname}_{year}_{month}.pdf"
+
+logs:
+  syslog: /var/log/syslog
+  auth_log: /var/log/auth.log
+  kern_log: /var/log/kern.log
+  dmesg_command: /usr/bin/dmesg
+
+storage:
+  type: json
+  data_dir: data/metrics
+
+logging:
+  level: INFO
+  file: logs/app.log
+  max_bytes: 10485760  # 10MB
+  backup_count: 5

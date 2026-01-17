@@ -1,0 +1,28 @@
+cpu:
+  warning:
+    avg_usage: 70
+    max_usage: 85
+  critical:
+    avg_usage: 85
+    max_usage: 95
+
+memory:
+  warning:
+    ram_usage: 80
+    swap_usage: 30
+  critical:
+    ram_usage: 90
+    swap_usage: 50
+
+disk:
+  warning:
+    usage: 80
+  critical:
+    usage: 90
+
+logs:
+  warning:
+    error_count: 50
+  critical:
+    error_count: 200
+    kernel_errors: 10

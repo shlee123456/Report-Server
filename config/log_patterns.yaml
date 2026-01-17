@@ -1,0 +1,35 @@
+syslog:
+  error_patterns:
+    - regex: 'ERROR'
+      case_sensitive: false
+    - regex: 'CRITICAL'
+      case_sensitive: false
+    - regex: 'FATAL'
+      case_sensitive: false
+  warning_patterns:
+    - regex: 'WARNING'
+      case_sensitive: false
+    - regex: 'WARN'
+      case_sensitive: false
+
+auth_log:
+  security_events:
+    - regex: 'Failed password'
+      severity: warning
+    - regex: 'authentication failure'
+      severity: warning
+    - regex: 'Invalid user'
+      severity: warning
+    - regex: 'POSSIBLE BREAK-IN ATTEMPT'
+      severity: critical
+
+kernel_log:
+  hardware_errors:
+    - regex: 'hardware error'
+      case_sensitive: false
+    - regex: 'I/O error'
+      case_sensitive: false
+    - regex: 'segfault'
+      case_sensitive: false
+    - regex: 'Out of memory'
+      case_sensitive: false

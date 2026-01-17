@@ -1,0 +1,18 @@
+# System monitoring
+psutil>=5.9.0
+
+# PDF generation
+reportlab>=4.0.0
+
+# Chart generation
+matplotlib>=3.7.0
+
+# Data analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Configuration
+PyYAML>=6.0
+
+# Utilities
+python-dateutil>=2.8.0
