@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Dependency installation script for Server Monitoring System
+# Dependency installation script for Server Monitoring System (pyenv version)
 #
 
 set -e  # Exit on error
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo "=========================================="
-echo "Server Monitoring System - Dependency Setup"
+echo "Server Monitoring System - Dependency Setup (pyenv)"
 echo "=========================================="
 echo ""
 
@@ -22,40 +22,48 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_ROOT"
 
-# Check Python version
-echo -e "${YELLOW}Checking Python version...${NC}"
-if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}Error: Python 3 is not installed${NC}"
+# Check if pyenv is installed
+echo -e "${YELLOW}Checking pyenv...${NC}"
+if ! command -v pyenv &> /dev/null; then
+    echo -e "${RED}Error: pyenv is not installed${NC}"
+    echo "Install pyenv first: https://github.com/pyenv/pyenv#installation"
     exit 1
 fi
-
-PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
-echo -e "${GREEN}Found Python $PYTHON_VERSION${NC}"
+echo -e "${GREEN}pyenv is installed${NC}"
 echo ""
 
-# Check if pip is installed
-echo -e "${YELLOW}Checking pip...${NC}"
-if ! command -v pip3 &> /dev/null; then
-    echo -e "${RED}Error: pip3 is not installed${NC}"
-    echo "Install pip using: sudo apt-get install python3-pip"
+# Check if pyenv-virtualenv is installed
+echo -e "${YELLOW}Checking pyenv-virtualenv...${NC}"
+if ! pyenv commands | grep -q virtualenv; then
+    echo -e "${RED}Error: pyenv-virtualenv is not installed${NC}"
+    echo "Install pyenv-virtualenv: https://github.com/pyenv/pyenv-virtualenv"
     exit 1
 fi
-echo -e "${GREEN}pip3 is installed${NC}"
+echo -e "${GREEN}pyenv-virtualenv is installed${NC}"
 echo ""
 
-# Create virtual environment
-echo -e "${YELLOW}Creating virtual environment...${NC}"
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-    echo -e "${GREEN}Virtual environment created${NC}"
+# Check .python-version file
+VENV_NAME="report-server"
+PYTHON_VERSION="3.11.0"
+
+if [ -f ".python-version" ]; then
+    VENV_NAME=$(cat .python-version)
+    echo -e "${GREEN}Found .python-version: $VENV_NAME${NC}"
+fi
+
+# Check if virtualenv exists, create if not
+echo -e "${YELLOW}Setting up pyenv virtualenv...${NC}"
+if ! pyenv versions | grep -q "$VENV_NAME"; then
+    echo "Creating virtualenv: $VENV_NAME"
+    pyenv virtualenv $PYTHON_VERSION $VENV_NAME
+    echo -e "${GREEN}Virtualenv created${NC}"
 else
-    echo -e "${GREEN}Virtual environment already exists${NC}"
+    echo -e "${GREEN}Virtualenv already exists: $VENV_NAME${NC}"
 fi
-echo ""
 
-# Activate virtual environment
-echo -e "${YELLOW}Activating virtual environment...${NC}"
-source venv/bin/activate
+# Set local python version
+pyenv local $VENV_NAME
+echo ""
 
 # Upgrade pip
 echo -e "${YELLOW}Upgrading pip...${NC}"
@@ -71,14 +79,16 @@ echo ""
 # Check for system dependencies
 echo -e "${YELLOW}Checking system dependencies...${NC}"
 
-# Check if user is in adm group (needed for log access)
-if ! groups | grep -q "\badm\b"; then
-    echo -e "${YELLOW}Warning: Current user is not in 'adm' group${NC}"
-    echo "Log file access may be limited."
-    echo "To add user to adm group, run:"
-    echo "  sudo usermod -aG adm \$USER"
-    echo "Then log out and log back in."
-    echo ""
+# Check if user is in adm group (needed for log access on Linux)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    if ! groups | grep -q "\badm\b"; then
+        echo -e "${YELLOW}Warning: Current user is not in 'adm' group${NC}"
+        echo "Log file access may be limited."
+        echo "To add user to adm group, run:"
+        echo "  sudo usermod -aG adm \$USER"
+        echo "Then log out and log back in."
+        echo ""
+    fi
 fi
 
 # Create required directories
@@ -101,12 +111,14 @@ echo "=========================================="
 echo -e "${GREEN}Installation Complete!${NC}"
 echo "=========================================="
 echo ""
-echo "Next steps:"
-echo "1. Activate virtual environment: source venv/bin/activate"
-echo "2. Test metrics collection: python src/main.py --collect-only"
-echo "3. Setup cron jobs: bash scripts/setup_cron.sh"
+echo "pyenv virtualenv: $VENV_NAME"
+echo "Python version: $(python --version)"
 echo ""
-echo "For log access, ensure your user is in the 'adm' group:"
+echo "Next steps:"
+echo "1. Test metrics collection: python src/main.py --collect-only"
+echo "2. Setup cron jobs: bash scripts/setup_cron.sh"
+echo ""
+echo "For log access on Linux, ensure your user is in the 'adm' group:"
 echo "  sudo usermod -aG adm \$USER"
 echo "  (then log out and log back in)"
 echo ""

@@ -14,30 +14,47 @@ Ubuntu 서버의 시스템 메트릭(CPU, 메모리, 디스크)을 자동으로 
 
 ## 시스템 요구사항
 
-- Ubuntu Server 18.04 이상
-- Python 3.8 이상
-- sudo 권한 (로그 파일 읽기용, 사용자가 `adm` 그룹에 속해야 함)
+- Ubuntu Server 18.04 이상 (macOS도 지원)
+- Python 3.11+ (pyenv로 관리)
+- [pyenv](https://github.com/pyenv/pyenv) + [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)
+- sudo 권한 (로그 파일 읽기용, Linux에서 사용자가 `adm` 그룹에 속해야 함)
 - Python 의존성 설치용 디스크 공간 ~50MB
 - 연간 메트릭 데이터용 디스크 공간 ~100MB
 
 ## 빠른 시작
 
-### 1. 설치
+### 1. pyenv 설치 (없는 경우)
 
 ```bash
-# 저장소 클론 또는 다운로드
-cd /path/to/Report-Server
+# macOS (Homebrew)
+brew install pyenv pyenv-virtualenv
 
-# 설치 스크립트 실행
+# Linux
+curl https://pyenv.run | bash
+
+# ~/.bashrc 또는 ~/.zshrc에 추가
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+```
+
+### 2. 프로젝트 설치
+
+```bash
+# 저장소 클론
+git clone git@github.com:shlee123456/Report-Server.git
+cd Report-Server
+
+# 설치 스크립트 실행 (pyenv 가상환경 자동 생성)
 bash scripts/install_deps.sh
 
-# 로그 접근을 위해 사용자를 adm 그룹에 추가
+# (Linux만 해당) 로그 접근을 위해 사용자를 adm 그룹에 추가
 sudo usermod -aG adm $USER
-
 # 그룹 변경 적용을 위해 로그아웃 후 재로그인
 ```
 
-### 2. 설정
+### 3. 설정
 
 `config/` 디렉토리의 설정 파일을 편집합니다:
 
@@ -47,11 +64,11 @@ sudo usermod -aG adm $USER
 | `thresholds.yaml` | 경고/위험 임계값 |
 | `log_patterns.yaml` | 로그 패턴 매칭 규칙 |
 
-### 3. 테스트 실행
+### 4. 테스트 실행
 
 ```bash
-# 가상환경 활성화
-source venv/bin/activate
+# pyenv가 자동으로 가상환경 활성화 (.python-version 파일)
+cd Report-Server
 
 # 메트릭 수집 테스트
 python src/main.py --collect-only
@@ -60,7 +77,7 @@ python src/main.py --collect-only
 python src/main.py --generate-report
 ```
 
-### 4. 자동화 설정
+### 5. 자동화 설정
 
 ```bash
 # cron 작업 설치

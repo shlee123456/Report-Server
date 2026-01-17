@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Cron job setup script for Server Monitoring System
+# Cron job setup script for Server Monitoring System (pyenv version)
 #
 
 set -e  # Exit on error
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo "=========================================="
-echo "Server Monitoring System - Cron Setup"
+echo "Server Monitoring System - Cron Setup (pyenv)"
 echo "=========================================="
 echo ""
 
@@ -22,14 +22,17 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_ROOT"
 
-# Get absolute paths
-PYTHON_BIN="$PROJECT_ROOT/venv/bin/python"
+# Get pyenv paths
+PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+VENV_NAME=$(cat .python-version 2>/dev/null || echo "report-server")
+PYTHON_BIN="$PYENV_ROOT/versions/$VENV_NAME/bin/python"
 MAIN_SCRIPT="$PROJECT_ROOT/src/main.py"
 CRON_LOG="$PROJECT_ROOT/logs/cron.log"
 
-# Check if virtual environment exists
+# Check if virtualenv python exists
 if [ ! -f "$PYTHON_BIN" ]; then
-    echo -e "${RED}Error: Virtual environment not found${NC}"
+    echo -e "${RED}Error: pyenv virtualenv Python not found${NC}"
+    echo "Expected: $PYTHON_BIN"
     echo "Run 'bash scripts/install_deps.sh' first"
     exit 1
 fi
@@ -116,6 +119,7 @@ echo "Cron jobs have been installed:"
 echo "1. Daily metrics collection at 23:59"
 echo "2. Monthly report generation on 1st at 02:00"
 echo ""
+echo "Python executable: $PYTHON_BIN"
 echo "Logs will be written to: $CRON_LOG"
 echo ""
 echo "To test manually:"
