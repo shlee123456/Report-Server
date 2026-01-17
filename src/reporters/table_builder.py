@@ -1,12 +1,20 @@
 """
 Table builder module for formatting data tables.
+한글 헤더 및 레이블 적용
 """
 from typing import List, Dict, Any, Tuple
 import logging
 
 
 class TableBuilder:
-    """Build formatted tables for PDF reports."""
+    """Build formatted tables for PDF reports with Korean labels."""
+
+    # 추세 한글 변환
+    TREND_LABELS = {
+        'increasing': '📈 증가',
+        'decreasing': '📉 감소',
+        'stable': '➡️ 안정',
+    }
 
     def __init__(self):
         """Initialize table builder."""
@@ -14,70 +22,52 @@ class TableBuilder:
 
     def build_summary_table(self, summary: Dict[str, Any]) -> List[List[str]]:
         """
-        Build summary statistics table.
+        Build summary statistics table with horizontal layout for better readability.
 
         Args:
             summary: Summary statistics dictionary
 
         Returns:
-            Table data as list of rows
+            Table data as list of rows (horizontal layout)
         """
-        table_data = [
-            ['Metric', 'Value']
-        ]
-
-        # Collection period
+        # 수집 기간
         period = summary.get('collection_period', {})
         days = period.get('days_collected', 'N/A')
-        table_data.append(['Collection Period', f'{days} days'])
 
-        # CPU summary
+        # CPU 요약
         cpu = summary.get('cpu_summary', {})
-        if cpu:
-            avg_cpu = cpu.get('avg_usage')
-            max_cpu = cpu.get('max_usage')
-            trend = cpu.get('trend', 'N/A')
+        avg_cpu = cpu.get('avg_usage', 0) if cpu else 0
+        max_cpu = cpu.get('max_usage', 0) if cpu else 0
+        cpu_trend = cpu.get('trend', 'stable') if cpu else 'stable'
 
-            if avg_cpu is not None:
-                table_data.append(['Avg CPU Usage', f'{avg_cpu:.1f}%'])
-            if max_cpu is not None:
-                table_data.append(['Max CPU Usage', f'{max_cpu:.1f}%'])
-            table_data.append(['CPU Trend', trend.capitalize()])
-
-        # Memory summary
+        # 메모리 요약
         memory = summary.get('memory_summary', {})
-        if memory:
-            avg_ram = memory.get('avg_ram_usage')
-            max_ram = memory.get('max_ram_usage')
-            avg_swap = memory.get('avg_swap_usage')
-            trend = memory.get('trend', 'N/A')
+        avg_ram = memory.get('avg_ram_usage', 0) if memory else 0
+        max_ram = memory.get('max_ram_usage', 0) if memory else 0
+        mem_trend = memory.get('trend', 'stable') if memory else 'stable'
 
-            if avg_ram is not None:
-                table_data.append(['Avg RAM Usage', f'{avg_ram:.1f}%'])
-            if max_ram is not None:
-                table_data.append(['Max RAM Usage', f'{max_ram:.1f}%'])
-            if avg_swap is not None:
-                table_data.append(['Avg SWAP Usage', f'{avg_swap:.1f}%'])
-            table_data.append(['Memory Trend', trend.capitalize()])
-
-        # Disk summary
+        # 디스크 요약
         disk = summary.get('disk_summary', {})
-        if disk:
-            avg_disk = disk.get('avg_usage')
-            max_disk = disk.get('max_usage')
-            trend = disk.get('trend', 'N/A')
+        avg_disk = disk.get('avg_usage', 0) if disk else 0
+        max_disk = disk.get('max_usage', 0) if disk else 0
+        disk_trend = disk.get('trend', 'stable') if disk else 'stable'
 
-            if avg_disk is not None:
-                table_data.append(['Avg Disk Usage', f'{avg_disk:.1f}%'])
-            if max_disk is not None:
-                table_data.append(['Max Disk Usage', f'{max_disk:.1f}%'])
-            table_data.append(['Disk Trend', trend.capitalize()])
+        # 가로 레이아웃 테이블
+        table_data = [
+            ['📊 항목', '🖥️ CPU', '💾 메모리', '💿 디스크'],
+            ['평균 사용률', f'{avg_cpu:.1f}%', f'{avg_ram:.1f}%', f'{avg_disk:.1f}%'],
+            ['최대 사용률', f'{max_cpu:.1f}%', f'{max_ram:.1f}%', f'{max_disk:.1f}%'],
+            ['추세', 
+             self.TREND_LABELS.get(cpu_trend, '➡️ 안정'),
+             self.TREND_LABELS.get(mem_trend, '➡️ 안정'),
+             self.TREND_LABELS.get(disk_trend, '➡️ 안정')],
+        ]
 
         return table_data
 
     def build_cpu_stats_table(self, cpu_analysis: Dict[str, Any]) -> List[List[str]]:
         """
-        Build CPU statistics table.
+        Build CPU statistics table with Korean headers.
 
         Args:
             cpu_analysis: CPU analysis dictionary
@@ -86,33 +76,33 @@ class TableBuilder:
             Table data as list of rows
         """
         table_data = [
-            ['Statistic', 'Value']
+            ['📊 통계', '📈 값']
         ]
 
         usage = cpu_analysis.get('usage', {})
         if usage:
             if usage.get('min') is not None:
-                table_data.append(['Minimum', f"{usage['min']:.2f}%"])
+                table_data.append(['최소값', f"{usage['min']:.2f}%"])
             if usage.get('max') is not None:
-                table_data.append(['Maximum', f"{usage['max']:.2f}%"])
+                table_data.append(['최대값', f"{usage['max']:.2f}%"])
             if usage.get('mean') is not None:
-                table_data.append(['Average', f"{usage['mean']:.2f}%"])
+                table_data.append(['평균값', f"{usage['mean']:.2f}%"])
             if usage.get('median') is not None:
-                table_data.append(['Median', f"{usage['median']:.2f}%"])
+                table_data.append(['중앙값', f"{usage['median']:.2f}%"])
             if usage.get('std') is not None:
-                table_data.append(['Std Deviation', f"{usage['std']:.2f}%"])
+                table_data.append(['표준편차', f"{usage['std']:.2f}%"])
 
-        # Load averages
+        # 로드 평균
         load_avg = cpu_analysis.get('load_average', {})
         load_1m = load_avg.get('1min', {})
         if load_1m and load_1m.get('mean') is not None:
-            table_data.append(['Avg Load (1min)', f"{load_1m['mean']:.2f}"])
+            table_data.append(['평균 로드 (1분)', f"{load_1m['mean']:.2f}"])
 
         return table_data
 
     def build_memory_stats_table(self, memory_analysis: Dict[str, Any]) -> List[List[str]]:
         """
-        Build memory statistics table.
+        Build memory statistics table with Korean headers.
 
         Args:
             memory_analysis: Memory analysis dictionary
@@ -121,24 +111,24 @@ class TableBuilder:
             Table data as list of rows
         """
         table_data = [
-            ['Metric', 'Min', 'Max', 'Average']
+            ['💾 항목', '📉 최소', '📈 최대', '📊 평균']
         ]
 
-        # RAM statistics
+        # RAM 통계
         ram = memory_analysis.get('ram', {}).get('usage_percent', {})
         if ram:
             table_data.append([
-                'RAM Usage (%)',
+                'RAM 사용률',
                 f"{ram.get('min', 0):.1f}%",
                 f"{ram.get('max', 0):.1f}%",
                 f"{ram.get('mean', 0):.1f}%"
             ])
 
-        # SWAP statistics
+        # SWAP 통계
         swap = memory_analysis.get('swap', {}).get('usage_percent', {})
         if swap:
             table_data.append([
-                'SWAP Usage (%)',
+                'SWAP 사용률',
                 f"{swap.get('min', 0):.1f}%",
                 f"{swap.get('max', 0):.1f}%",
                 f"{swap.get('mean', 0):.1f}%"
@@ -148,7 +138,7 @@ class TableBuilder:
 
     def build_disk_stats_table(self, disk_analysis: Dict[str, Any]) -> List[List[str]]:
         """
-        Build disk statistics table.
+        Build disk statistics table with Korean headers.
 
         Args:
             disk_analysis: Disk analysis dictionary
@@ -157,7 +147,7 @@ class TableBuilder:
             Table data as list of rows
         """
         table_data = [
-            ['Mountpoint', 'Device', 'Type', 'Avg Usage', 'Max Usage', 'Trend']
+            ['💿 마운트', '🔧 장치', '📁 타입', '📊 평균', '📈 최대', '📉 추세']
         ]
 
         for mountpoint, stats in disk_analysis.items():
@@ -165,24 +155,28 @@ class TableBuilder:
             fstype = stats.get('fstype', 'N/A')
             usage_percent = stats.get('usage_percent', {})
             trend = stats.get('trend', 'stable')
+            trend_label = self.TREND_LABELS.get(trend, trend)
 
             avg_usage = usage_percent.get('mean')
             max_usage = usage_percent.get('max')
 
+            # 마운트포인트 간소화
+            display_mount = mountpoint if len(mountpoint) <= 12 else '...' + mountpoint[-9:]
+
             table_data.append([
-                mountpoint,
+                display_mount,
                 device,
                 fstype,
                 f"{avg_usage:.1f}%" if avg_usage is not None else 'N/A',
                 f"{max_usage:.1f}%" if max_usage is not None else 'N/A',
-                trend.capitalize()
+                trend_label
             ])
 
         return table_data
 
     def build_violations_table(self, violations: List[Dict[str, Any]]) -> List[List[str]]:
         """
-        Build threshold violations table.
+        Build threshold violations table with Korean headers.
 
         Args:
             violations: List of violations
@@ -191,36 +185,43 @@ class TableBuilder:
             Table data as list of rows
         """
         table_data = [
-            ['Metric', 'Value', 'Threshold', 'Severity']
+            ['⚠️ 지표', '📈 값', '🎯 임계값', '🚨 심각도']
         ]
+
+        severity_labels = {
+            'critical': '🔴 긴급',
+            'warning': '🟡 경고',
+        }
 
         for violation in violations:
             metric = violation.get('metric', 'N/A')
             value = violation.get('value', 'N/A')
             threshold = violation.get('threshold', 'N/A')
-            severity = violation.get('severity', 'N/A')
+            severity = violation.get('severity', 'warning')
 
-            # Format value
+            # 값 포맷
             if isinstance(value, (int, float)):
                 value_str = f"{value:.1f}"
             else:
                 value_str = str(value)
 
+            severity_label = severity_labels.get(severity, severity)
+
             table_data.append([
                 metric,
                 value_str,
                 str(threshold),
-                severity.upper()
+                severity_label
             ])
 
         if len(table_data) == 1:
-            table_data.append(['No violations detected', '', '', ''])
+            table_data.append(['✅ 위반 사항 없음', '-', '-', '-'])
 
         return table_data
 
     def build_log_summary_table(self, log_analysis: Dict[str, Any]) -> List[List[str]]:
         """
-        Build log analysis summary table.
+        Build log analysis summary table with Korean headers.
 
         Args:
             log_analysis: Log analysis dictionary
@@ -229,40 +230,46 @@ class TableBuilder:
             Table data as list of rows
         """
         table_data = [
-            ['Log Source', 'Errors', 'Warnings', 'Total Events']
+            ['📝 로그 소스', '🔴 오류', '🟡 경고', '📊 합계']
         ]
 
-        # Syslog
+        # 시스템 로그
         syslog = log_analysis.get('syslog', {})
+        syslog_errors = syslog.get('error_count', 0)
+        syslog_warnings = syslog.get('warning_count', 0)
         table_data.append([
-            'System Log',
-            str(syslog.get('error_count', 0)),
-            str(syslog.get('warning_count', 0)),
-            str(syslog.get('error_count', 0) + syslog.get('warning_count', 0))
+            '시스템 로그',
+            str(syslog_errors),
+            str(syslog_warnings),
+            str(syslog_errors + syslog_warnings)
         ])
 
-        # Auth log
+        # 인증 로그
         auth_log = log_analysis.get('auth_log', {})
+        auth_errors = auth_log.get('error_count', 0)
+        auth_warnings = auth_log.get('warning_count', 0)
+        security_events = auth_log.get('security_events', 0)
         table_data.append([
-            'Authentication Log',
-            str(auth_log.get('error_count', 0)),
-            str(auth_log.get('warning_count', 0)),
-            str(auth_log.get('security_events', 0))
+            '인증 로그',
+            str(auth_errors),
+            str(auth_warnings),
+            str(security_events)
         ])
 
-        # Kernel log
+        # 커널 로그
         kernel_log = log_analysis.get('kernel_log', {})
+        kernel_errors = kernel_log.get('error_count', 0)
         table_data.append([
-            'Kernel Log',
-            str(kernel_log.get('error_count', 0)),
-            'N/A',
-            str(kernel_log.get('error_count', 0))
+            '커널 로그',
+            str(kernel_errors),
+            '-',
+            str(kernel_errors)
         ])
 
-        # Total
+        # 합계
         summary = log_analysis.get('summary', {})
         table_data.append([
-            'TOTAL',
+            '📊 합계',
             str(summary.get('total_errors', 0)),
             str(summary.get('total_warnings', 0)),
             str(summary.get('total_events', 0))
@@ -272,7 +279,7 @@ class TableBuilder:
 
     def build_recommendations_table(self, recommendations: List[Dict[str, Any]]) -> List[List[str]]:
         """
-        Build recommendations table.
+        Build recommendations table with Korean headers.
 
         Args:
             recommendations: List of recommendations
@@ -281,24 +288,33 @@ class TableBuilder:
             Table data as list of rows
         """
         table_data = [
-            ['Priority', 'Category', 'Title']
+            ['🚨 우선순위', '📁 분류', '📋 제목']
         ]
+
+        priority_labels = {
+            'CRITICAL': '🔴 긴급',
+            'HIGH': '🟠 높음',
+            'MEDIUM': '🟡 보통',
+            'LOW': '🟢 낮음',
+        }
 
         for rec in recommendations:
             priority = rec.get('priority', 'N/A').upper()
             category = rec.get('category', 'N/A')
             title = rec.get('title', 'N/A')
 
-            table_data.append([priority, category, title])
+            priority_label = priority_labels.get(priority, priority)
+
+            table_data.append([priority_label, category, title])
 
         if len(table_data) == 1:
-            table_data.append(['N/A', 'N/A', 'No recommendations'])
+            table_data.append(['✅ 없음', '-', '권장 사항이 없습니다'])
 
         return table_data
 
     def format_bytes(self, bytes_value: int) -> str:
         """
-        Format bytes to human-readable format.
+        Format bytes to human-readable format (Korean).
 
         Args:
             bytes_value: Value in bytes
