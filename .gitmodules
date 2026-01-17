@@ -1,0 +1,3 @@
+[submodule "CLAUDE-DOCS"]
+	path = CLAUDE-DOCS
+	url = git@github.com:shlee123456/CLAUDE-DOCS.git
