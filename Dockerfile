@@ -4,10 +4,14 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies and Korean fonts
 RUN apt-get update && apt-get install -y \
     procps \
     curl \
+    fonts-nanum \
+    fonts-nanum-coding \
+    fontconfig \
+    && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
