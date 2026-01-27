@@ -70,32 +70,65 @@ class PDFGenerator:
 
     def _register_korean_font(self):
         """Register Korean font for PDF rendering."""
-        font_paths = []
-        
+        font_configs = []
+
         if platform.system() == 'Darwin':
-            font_paths = [
-                '/System/Library/Fonts/Supplemental/AppleGothic.ttf',
-                '/Library/Fonts/AppleGothic.ttf',
+            font_configs = [
+                {
+                    'regular': '/System/Library/Fonts/Supplemental/AppleGothic.ttf',
+                    'bold': '/System/Library/Fonts/Supplemental/AppleGothic.ttf',
+                },
+                {
+                    'regular': '/Library/Fonts/AppleGothic.ttf',
+                    'bold': '/Library/Fonts/AppleGothic.ttf',
+                },
             ]
         elif platform.system() == 'Linux':
-            font_paths = [
-                '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+            font_configs = [
+                {
+                    'regular': '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+                    'bold': '/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf',
+                },
             ]
         else:
-            font_paths = [
-                'C:/Windows/Fonts/malgun.ttf',
+            font_configs = [
+                {
+                    'regular': 'C:/Windows/Fonts/malgun.ttf',
+                    'bold': 'C:/Windows/Fonts/malgunbd.ttf',
+                },
             ]
 
         font_registered = False
-        for font_path in font_paths:
-            if os.path.exists(font_path):
+        for config in font_configs:
+            regular_path = config['regular']
+            bold_path = config['bold']
+
+            if os.path.exists(regular_path):
                 try:
-                    pdfmetrics.registerFont(TTFont('Korean', font_path))
-                    pdfmetrics.registerFont(TTFont('KoreanBold', font_path))
+                    pdfmetrics.registerFont(TTFont('Korean', regular_path))
                     font_registered = True
                     self.korean_font = 'Korean'
-                    self.korean_font_bold = 'KoreanBold'
-                    self.logger.info(f"Korean font registered: {font_path}")
+                    self.logger.info(f"Korean font registered: {regular_path}")
+
+                    # Register bold font if available
+                    if os.path.exists(bold_path):
+                        pdfmetrics.registerFont(TTFont('KoreanBold', bold_path))
+                        self.korean_font_bold = 'KoreanBold'
+                        self.logger.info(f"Korean bold font registered: {bold_path}")
+                    else:
+                        self.korean_font_bold = 'Korean'
+                        self.logger.warning(f"Bold font not found, using regular: {bold_path}")
+
+                    # Register font family for automatic bold/italic substitution
+                    pdfmetrics.registerFontFamily(
+                        'Korean',
+                        normal='Korean',
+                        bold=self.korean_font_bold,
+                        italic='Korean',
+                        boldItalic=self.korean_font_bold
+                    )
+                    self.logger.info("Korean font family registered for <b> tag support")
+
                     break
                 except Exception as e:
                     self.logger.warning(f"Failed to register font: {e}")

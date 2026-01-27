@@ -241,6 +241,9 @@ docker-compose run --rm report-server python src/main.py --generate-report
 # 특정 월 보고서
 docker-compose run --rm report-server python src/main.py --generate-report --year 2025 --month 12
 
+# 2026년 1월 보고서 예시
+docker-compose run --rm report-server python src/main.py --generate-report --year 2026 --month 1
+
 # 스케줄러 시작/중지
 docker-compose up -d report-server-cron
 docker-compose stop report-server-cron
