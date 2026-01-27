@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
     procps \
     curl \
     fonts-nanum \
-    fonts-nanum-coding \
     fontconfig \
     && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
