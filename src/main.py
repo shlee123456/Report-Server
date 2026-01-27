@@ -163,6 +163,9 @@ def generate_report(config, thresholds, log_patterns, logger, year=None, month=N
         # Create year/month directory structure like metrics
         output_path = os.path.join(output_dir, str(year), f"{month:02d}", filename)
 
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
         pdf_gen = PDFGenerator(output_path)
         pdf_gen.create_complete_report(
             hostname=hostname,
