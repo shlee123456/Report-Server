@@ -44,11 +44,11 @@ services:
     # mem_limit: 512m
     # cpus: 0.5
 
-    # Restart policy
-    restart: unless-stopped
+    # Restart policy - 'no' for one-time execution
+    restart: "no"
 
     # Override default command
-    # command: python src/main.py --collect-only
+    command: python src/main.py --collect-only
 
   # Scheduled collection service (optional - using cron inside container)
   report-server-cron:

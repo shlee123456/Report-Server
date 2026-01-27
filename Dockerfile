@@ -28,4 +28,4 @@ ENV PYTHONUNBUFFERED=1
 ENV TZ=Asia/Seoul
 
 # Default command (can be overridden)
-CMD ["python", "src/main.py", "--help"]
+CMD ["python", "src/main.py", "--collect-only"]
