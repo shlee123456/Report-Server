@@ -142,6 +142,7 @@ def generate_report(config, thresholds, log_patterns, logger, year=None, month=N
         table_builder = TableBuilder()
         tables = {
             'summary_table': table_builder.build_summary_table(summary),
+            'daily_usage_table': table_builder.build_daily_usage_table(metrics_list),
             'cpu_stats_table': table_builder.build_cpu_stats_table(analysis.get('cpu', {})),
             'memory_stats_table': table_builder.build_memory_stats_table(analysis.get('memory', {})),
             'disk_stats_table': table_builder.build_disk_stats_table(analysis.get('disk', {})),

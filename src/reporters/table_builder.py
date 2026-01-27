@@ -312,6 +312,63 @@ class TableBuilder:
 
         return table_data
 
+    def build_daily_usage_table(self, metrics_list: List[Dict[str, Any]]) -> List[List[str]]:
+        """
+        Build daily usage table with CPU and memory statistics.
+
+        Args:
+            metrics_list: List of daily metrics dictionaries
+
+        Returns:
+            Table data as list of rows
+        """
+        table_data = [
+            ['기간', 'CPU 평균[%]', 'CPU 최고[%]', 'MEM 평균[%]', 'MEM 최대[%]', 'MEM 평균[KB]', 'MEM 최대[KB]']
+        ]
+
+        for metrics in metrics_list:
+            # 날짜 파싱
+            timestamp = metrics.get('timestamp', '')
+            if timestamp:
+                try:
+                    from datetime import datetime
+                    dt = datetime.fromisoformat(timestamp)
+                    date_str = dt.strftime('%Y.%m.%d')
+                except Exception:
+                    date_str = timestamp.split('T')[0] if 'T' in timestamp else timestamp
+            else:
+                date_str = 'N/A'
+
+            # CPU 데이터
+            cpu_data = metrics.get('cpu', {})
+            cpu_usage = cpu_data.get('usage_percent', 0)
+            # CPU 최고값은 수집된 순간의 값을 사용 (일별 데이터이므로)
+            cpu_max = cpu_usage
+
+            # 메모리 데이터
+            memory_data = metrics.get('memory', {})
+            ram_data = memory_data.get('ram', {})
+            ram_percent = ram_data.get('percent', 0)
+            ram_used = ram_data.get('used', 0)
+
+            # 메모리 KB 단위로 변환
+            ram_used_kb = ram_used / 1024 if ram_used else 0
+
+            table_data.append([
+                date_str,
+                f'{cpu_usage:.2f}' if cpu_usage else '0.00',
+                f'{cpu_max:.2f}' if cpu_max else '0.00',
+                f'{ram_percent:.2f}' if ram_percent else '0.00',
+                f'{ram_percent:.2f}' if ram_percent else '0.00',  # 최대값도 동일 (일별 데이터)
+                f'{ram_used_kb:,.0f}',
+                f'{ram_used_kb:,.0f}'  # 최대값도 동일 (일별 데이터)
+            ])
+
+        if len(table_data) == 1:
+            table_data.append(['데이터 없음', '-', '-', '-', '-', '-', '-'])
+
+        return table_data
+
     def format_bytes(self, bytes_value: int) -> str:
         """
         Format bytes to human-readable format (Korean).

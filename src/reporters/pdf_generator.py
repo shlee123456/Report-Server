@@ -731,7 +731,7 @@ class PDFGenerator:
         # 3. 요약 대시보드
         self.add_section_header('1', '요약 대시보드', '📊')
         self.add_kpi_cards(latest_metrics, analysis, violations)
-        
+
         # 요약 통계 테이블
         if 'summary_table' in tables:
             self.story.append(Paragraph(
@@ -739,6 +739,15 @@ class PDFGenerator:
                 self.styles['SubsectionHeader']
             ))
             self.add_table(tables['summary_table'])
+
+        # 일자별 월간 사용률 테이블
+        if 'daily_usage_table' in tables:
+            self.add_spacer(0.2)
+            self.story.append(Paragraph(
+                "<b>월간 사용률 (일자별)</b>",
+                self.styles['SubsectionHeader']
+            ))
+            self.add_table(tables['daily_usage_table'])
 
         self.add_page_break()
 
