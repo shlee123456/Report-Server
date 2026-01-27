@@ -38,7 +38,13 @@ class ConfigLoader:
             self._config = yaml.safe_load(f)
 
         # Auto-detect hostname if set to 'auto'
-        if self._config.get('system', {}).get('hostname') == 'auto':
+        # Priority: 1. Environment variable REPORT_HOSTNAME
+        #          2. Config file setting (if not 'auto')
+        #          3. Auto-detection via socket.gethostname()
+        env_hostname = os.environ.get('REPORT_HOSTNAME', '').strip()
+        if env_hostname:
+            self._config['system']['hostname'] = env_hostname
+        elif self._config.get('system', {}).get('hostname') == 'auto':
             self._config['system']['hostname'] = socket.gethostname()
 
         # Convert relative paths to absolute

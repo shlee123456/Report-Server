@@ -56,17 +56,31 @@ git clone git@github.com:shlee123456/Report-Server.git
 cd Report-Server
 ```
 
-### 3. 설정 (필요시)
+### 3. 환경 변수 설정 (중요!)
 
-`config/` 디렉토리의 설정 파일을 편집합니다 (기본값으로 바로 사용 가능).
+Docker 환경에서는 서버의 실제 호스트명을 설정해야 합니다:
 
-### 4. Docker 이미지 빌드
+```bash
+# .env 파일 생성
+cp .env.example .env
+
+# .env 파일 편집하여 실제 서버 호스트명 입력
+# REPORT_HOSTNAME=your-server-name
+```
+
+**중요**: `REPORT_HOSTNAME`을 설정하지 않으면 보고서 파일명이 컨테이너명으로 생성됩니다.
+
+### 4. 기타 설정 (선택사항)
+
+`config/` 디렉토리의 설정 파일을 편집합니다 (기본값으로도 사용 가능).
+
+### 5. Docker 이미지 빌드
 
 ```bash
 bash scripts/docker-run.sh build
 ```
 
-### 5. 테스트 실행
+### 6. 테스트 실행
 
 ```bash
 # 메트릭 수집 테스트
@@ -76,7 +90,7 @@ bash scripts/docker-run.sh collect
 bash scripts/docker-run.sh report
 ```
 
-### 6. 자동화 설정 (스케줄러 시작)
+### 7. 자동화 설정 (스케줄러 시작)
 
 ```bash
 # cron 스케줄러 컨테이너 시작
@@ -376,6 +390,35 @@ ls -la /var/log/syslog
 
 # 필요시 Docker 사용자를 호스트의 adm 그룹에 매핑
 # docker-compose.yml에서 user: 설정 조정 필요
+```
+
+#### 보고서 파일명이 잘못된 호스트명으로 생성됨
+
+Docker에서 보고서 파일이 `server_report_report-server_2026_01.pdf` 같은 이름으로 생성되는 경우:
+
+```bash
+# .env 파일이 있는지 확인
+ls -la .env
+
+# 없으면 생성
+cp .env.example .env
+
+# .env 파일 편집하여 실제 서버 호스트명 설정
+nano .env
+# REPORT_HOSTNAME=your-actual-server-name
+
+# 환경 변수가 적용되었는지 확인
+docker-compose run --rm report-server printenv | grep REPORT_HOSTNAME
+
+# 컨테이너 재시작
+docker-compose restart
+```
+
+**또는** 일회성으로 호스트명 지정:
+
+```bash
+REPORT_HOSTNAME=myserver bash scripts/docker-run.sh collect
+REPORT_HOSTNAME=myserver bash scripts/docker-run.sh report
 ```
 
 #### 스케줄러가 작동하지 않음 (Docker)

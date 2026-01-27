@@ -4,7 +4,7 @@ services:
   report-server:
     build: .
     container_name: report-server
-    hostname: report-server
+    # hostname is intentionally not set to preserve host system hostname detection
 
     # Mount host system directories for monitoring
     volumes:
@@ -26,6 +26,9 @@ services:
       - TZ=Asia/Seoul
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
+      # Set REPORT_HOSTNAME to override auto-detection with actual host server name
+      # Example: REPORT_HOSTNAME=myserver.example.com
+      - REPORT_HOSTNAME=${REPORT_HOSTNAME:-}
 
     # Required for accurate system monitoring
     privileged: false
@@ -51,7 +54,7 @@ services:
   report-server-cron:
     build: .
     container_name: report-server-cron
-    hostname: report-server-cron
+    # hostname is intentionally not set to preserve host system hostname detection
 
     volumes:
       - /var/log:/host/var/log:ro
@@ -67,6 +70,7 @@ services:
       - TZ=Asia/Seoul
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
+      - REPORT_HOSTNAME=${REPORT_HOSTNAME:-}
 
     privileged: false
     pid: "host"
