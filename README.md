@@ -14,6 +14,7 @@ Ubuntu 서버의 시스템 메트릭(CPU, 메모리, 디스크)을 자동으로 
 
 ## 시스템 요구사항
 
+### 네이티브 실행 (pyenv)
 - Ubuntu Server 18.04 이상 (macOS도 지원)
 - Python 3.11+ (pyenv로 관리)
 - [pyenv](https://github.com/pyenv/pyenv) + [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)
@@ -21,7 +22,120 @@ Ubuntu 서버의 시스템 메트릭(CPU, 메모리, 디스크)을 자동으로 
 - Python 의존성 설치용 디스크 공간 ~50MB
 - 연간 메트릭 데이터용 디스크 공간 ~100MB
 
-## 빠른 시작
+### Docker 실행 (권장)
+- Docker Engine 20.10 이상
+- Docker Compose 2.0 이상
+- 디스크 공간 ~200MB (이미지 + 데이터)
+- sudo 권한 (Docker 실행 및 호스트 시스템 모니터링용)
+
+## 설치 방법
+
+두 가지 설치 방법 중 선택할 수 있습니다:
+
+1. **Docker 방식 (권장)**: Python/pyenv 설치 불필요, 격리된 환경
+2. **네이티브 방식**: 직접 시스템에 설치
+
+## 빠른 시작 - Docker 방식 (권장)
+
+> **중요**: Docker 방식은 호스트 시스템을 모니터링하기 위해 특별한 권한이 필요합니다.
+> - `pid: "host"` 모드 사용 (호스트 프로세스 네임스페이스 공유)
+> - `/proc`, `/sys`, `/var/log` 디렉토리를 호스트에서 마운트
+> - 프로덕션 환경에서는 보안 정책을 검토하세요.
+
+### 1. Docker 설치 확인
+
+```bash
+docker --version
+docker-compose --version
+```
+
+### 2. 프로젝트 클론
+
+```bash
+git clone git@github.com:shlee123456/Report-Server.git
+cd Report-Server
+```
+
+### 3. 설정 (필요시)
+
+`config/` 디렉토리의 설정 파일을 편집합니다 (기본값으로 바로 사용 가능).
+
+### 4. Docker 이미지 빌드
+
+```bash
+bash scripts/docker-run.sh build
+```
+
+### 5. 테스트 실행
+
+```bash
+# 메트릭 수집 테스트
+bash scripts/docker-run.sh collect
+
+# 보고서 생성 테스트
+bash scripts/docker-run.sh report
+```
+
+### 6. 자동화 설정 (스케줄러 시작)
+
+```bash
+# cron 스케줄러 컨테이너 시작
+bash scripts/docker-run.sh start-cron
+
+# 로그 확인
+bash scripts/docker-run.sh logs-cron
+```
+
+다음 작업이 자동으로 실행됩니다:
+- **매일 23:59**: 시스템 메트릭 수집
+- **매월 1일 02:00**: PDF 보고서 생성
+
+### Docker 명령어
+
+```bash
+# 이미지 빌드
+bash scripts/docker-run.sh build
+
+# 메트릭 수집
+bash scripts/docker-run.sh collect
+
+# 보고서 생성 (이전 달)
+bash scripts/docker-run.sh report
+
+# 특정 월 보고서 생성
+bash scripts/docker-run.sh report-month 2026 1
+
+# 스케줄러 시작/중지
+bash scripts/docker-run.sh start-cron
+bash scripts/docker-run.sh stop-cron
+
+# 로그 확인
+bash scripts/docker-run.sh logs        # 애플리케이션 로그
+bash scripts/docker-run.sh logs-cron   # 스케줄러 로그
+
+# 컨테이너 셸 접속
+bash scripts/docker-run.sh shell
+
+# 정리
+bash scripts/docker-run.sh clean
+```
+
+또는 docker-compose를 직접 사용:
+
+```bash
+# 일회성 명령 실행
+docker-compose run --rm report-server python src/main.py --collect-only
+
+# 스케줄러 시작
+docker-compose up -d report-server-cron
+
+# 로그 확인
+docker-compose logs -f report-server-cron
+```
+
+## 빠른 시작 - 네이티브 방식
+
+pyenv와 Python을 직접 설치하여 실행하는 방법입니다.
 
 ### 1. pyenv 설치 (없는 경우)
 
@@ -90,7 +204,24 @@ bash scripts/setup_cron.sh
 
 ## 사용법
 
-### CLI 명령어
+### Docker 방식
+
+```bash
+# 메트릭만 수집
+bash scripts/docker-run.sh collect
+
+# 보고서만 생성 (이전 달)
+bash scripts/docker-run.sh report
+
+# 특정 월 보고서 생성
+bash scripts/docker-run.sh report-month 2026 1
+
+# 또는 docker-compose 직접 사용
+docker-compose run --rm report-server python src/main.py --collect-only
+docker-compose run --rm report-server python src/main.py --generate-report --year 2026 --month 1
+```
+
+### 네이티브 방식
 
 ```bash
 # 메트릭만 수집
@@ -143,11 +274,16 @@ Report-Server/
 │   ├── thresholds.yaml
 │   └── log_patterns.yaml
 ├── scripts/                         # 자동화 스크립트
-│   ├── install_deps.sh
-│   └── setup_cron.sh
+│   ├── install_deps.sh             # pyenv 환경 설치
+│   ├── setup_cron.sh               # 네이티브 cron 설정
+│   ├── docker-run.sh               # Docker 헬퍼 스크립트
+│   └── docker-cron.sh              # Docker 내부 스케줄러
 ├── data/metrics/                    # 저장된 메트릭 (YYYY/MM/)
 ├── reports/                         # 생성된 PDF 보고서
 ├── logs/                            # 애플리케이션 로그
+├── Dockerfile                       # Docker 이미지 정의
+├── docker-compose.yml               # Docker Compose 설정
+├── .dockerignore                    # Docker 빌드 제외 파일
 └── requirements.txt                 # Python 의존성
 ```
 
@@ -205,7 +341,60 @@ disk:
 
 ## 문제 해결
 
-### 권한 거부 오류
+### Docker 관련
+
+#### Docker 컨테이너가 시작되지 않음
+
+```bash
+# 컨테이너 로그 확인
+docker-compose logs report-server
+
+# 이미지 재빌드
+bash scripts/docker-run.sh build
+```
+
+#### 호스트 시스템 메트릭이 수집되지 않음
+
+Docker는 기본적으로 컨테이너 내부 메트릭만 수집합니다. 호스트 시스템 메트릭을 수집하려면:
+
+1. `/proc`, `/sys`, `/var/log`가 올바르게 마운트되었는지 확인
+2. `docker-compose.yml`에 볼륨이 정의되어 있는지 확인
+
+```bash
+# 마운트 확인
+docker-compose run --rm report-server ls -la /host/proc
+docker-compose run --rm report-server ls -la /host/var/log
+```
+
+#### 권한 오류 (Docker)
+
+Docker 컨테이너에서 로그 파일 접근 시 권한 오류:
+
+```bash
+# 호스트에서 로그 디렉토리 권한 확인
+ls -la /var/log/syslog
+
+# 필요시 Docker 사용자를 호스트의 adm 그룹에 매핑
+# docker-compose.yml에서 user: 설정 조정 필요
+```
+
+#### 스케줄러가 작동하지 않음 (Docker)
+
+```bash
+# 스케줄러 컨테이너 상태 확인
+docker-compose ps
+
+# 스케줄러 로그 확인
+bash scripts/docker-run.sh logs-cron
+
+# 컨테이너 재시작
+bash scripts/docker-run.sh stop-cron
+bash scripts/docker-run.sh start-cron
+```
+
+### 네이티브 방식 관련
+
+#### 권한 거부 오류
 
 로그 파일 읽기 시 권한 오류가 발생하면:
 
@@ -217,7 +406,7 @@ sudo usermod -aG adm $USER
 groups | grep adm
 ```
 
-### Cron 작업이 실행되지 않음
+#### Cron 작업이 실행되지 않음
 
 cron 로그 확인:
 ```bash
@@ -229,19 +418,37 @@ cron 작업 설치 확인:
 crontab -l
 ```
 
-### 보고서용 데이터 누락
-
-메트릭이 수집되고 있는지 확인:
-```bash
-ls -la data/metrics/2026/01/
-```
-
-### Python 모듈 오류
+#### Python 모듈 오류
 
 가상환경이 활성화되어 있는지 확인:
 ```bash
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+### 공통 문제
+
+#### 보고서용 데이터 누락
+
+메트릭이 수집되고 있는지 확인:
+
+```bash
+# Docker 방식
+docker-compose run --rm report-server ls -la data/metrics/2026/01/
+
+# 네이티브 방식
+ls -la data/metrics/2026/01/
+```
+
+#### 로그 파일을 찾을 수 없음
+
+macOS에서는 `/var/log/syslog`가 없을 수 있습니다. `config/config.yaml`에서 로그 경로를 조정하세요:
+
+```yaml
+logs:
+  syslog: /var/log/system.log  # macOS
+  auth_log: /var/log/system.log
+  kern_log: /var/log/system.log
 ```
 
 ## 유지보수

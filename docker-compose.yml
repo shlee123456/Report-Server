@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  report-server:
+    build: .
+    container_name: report-server
+    hostname: report-server
+
+    # Mount host system directories for monitoring
+    volumes:
+      # Host system logs (read-only)
+      - /var/log:/host/var/log:ro
+
+      # Host proc and sys for system metrics (read-only)
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+
+      # Persistent data directories
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - ./config:/app/config
+
+    # Environment variables
+    environment:
+      - TZ=Asia/Seoul
+      - HOST_PROC=/host/proc
+      - HOST_SYS=/host/sys
+
+    # Required for accurate system monitoring
+    privileged: false
+
+    # Use host PID namespace for accurate process and system metrics
+    # This allows psutil to see all host processes and collect accurate CPU/memory stats
+    pid: "host"
+
+    # Network mode (use host for accurate network stats)
+    network_mode: bridge
+
+    # Resource limits (optional)
+    # mem_limit: 512m
+    # cpus: 0.5
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Override default command
+    # command: python src/main.py --collect-only
+
+  # Scheduled collection service (optional - using cron inside container)
+  report-server-cron:
+    build: .
+    container_name: report-server-cron
+    hostname: report-server-cron
+
+    volumes:
+      - /var/log:/host/var/log:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - ./config:/app/config
+      - ./scripts/docker-cron.sh:/app/docker-cron.sh:ro
+
+    environment:
+      - TZ=Asia/Seoul
+      - HOST_PROC=/host/proc
+      - HOST_SYS=/host/sys
+
+    privileged: false
+    pid: "host"
+    network_mode: bridge
+    restart: unless-stopped
+
+    # Run cron scheduler
+    command: /bin/bash /app/docker-cron.sh
