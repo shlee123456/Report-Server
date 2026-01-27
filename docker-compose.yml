@@ -26,6 +26,7 @@ services:
       - TZ=Asia/Seoul
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
+      - LOG_PATH_PREFIX=/host
       # Set REPORT_HOSTNAME to override auto-detection with actual host server name
       # Example: REPORT_HOSTNAME=myserver.example.com
       - REPORT_HOSTNAME=${REPORT_HOSTNAME:-}
@@ -70,6 +71,7 @@ services:
       - TZ=Asia/Seoul
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
+      - LOG_PATH_PREFIX=/host
       - REPORT_HOSTNAME=${REPORT_HOSTNAME:-}
 
     privileged: false

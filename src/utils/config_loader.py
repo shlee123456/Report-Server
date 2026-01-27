@@ -105,6 +105,19 @@ class ConfigLoader:
             if not os.path.isabs(log_file):
                 self._config['logging']['file'] = str(project_root / log_file)
 
+        # Resolve log file paths with environment variable prefix
+        # For Docker environments, LOG_PATH_PREFIX=/host allows accessing host logs
+        # For native environments, leave empty or unset
+        if 'logs' in self._config:
+            log_prefix = os.environ.get('LOG_PATH_PREFIX', '').strip()
+            if log_prefix:
+                for log_key in ['syslog', 'auth_log', 'kern_log']:
+                    if log_key in self._config['logs']:
+                        original_path = self._config['logs'][log_key]
+                        # Only add prefix if path starts with /var/log
+                        if original_path.startswith('/var/log'):
+                            self._config['logs'][log_key] = log_prefix + original_path
+
     @property
     def config(self) -> Dict[str, Any]:
         """Get main configuration."""
