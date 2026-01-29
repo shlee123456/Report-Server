@@ -54,9 +54,9 @@ Python 기반 서버 모니터링 시스템으로, `psutil`로 시스템 메트�
 git clone https://github.com/yourusername/Report-Server.git
 cd Report-Server
 
-# 2. 서버 이름 설정 (중요!)
+# 2. 서버 정보 설정 (중요!)
 cp .env.example .env
-nano .env  # REPORT_HOSTNAME=실제서버이름 입력
+nano .env  # REPORT_HOSTNAME=실제서버이름, HOST_IP=서버IP 입력
 
 # 3. 스케줄러 시작
 docker-compose up -d report-server-cron
@@ -174,6 +174,7 @@ cp .env.example .env
 # 편집
 nano .env
 # REPORT_HOSTNAME=myserver
+# HOST_IP=192.168.1.100  # 호스트 서버 IP (PDF 표지에 표시됨)
 ```
 
 ### 로그 읽기 권한 오류 (네이티브 설치)

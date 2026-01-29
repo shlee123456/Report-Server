@@ -47,6 +47,16 @@ class ConfigLoader:
         elif self._config.get('system', {}).get('hostname') == 'auto':
             self._config['system']['hostname'] = socket.gethostname()
 
+        # Set server IP from environment variable
+        # Priority: 1. Environment variable HOST_IP
+        #          2. Config file setting (if not 'auto')
+        #          3. Auto-detection
+        env_server_ip = os.environ.get('HOST_IP', '').strip()
+        if env_server_ip:
+            self._config['system']['server_ip'] = env_server_ip
+        elif self._config.get('system', {}).get('server_ip') == 'auto':
+            self._config['system']['server_ip'] = self._get_primary_ip()
+
         # Convert relative paths to absolute
         self._resolve_paths()
 
@@ -138,3 +148,28 @@ class ConfigLoader:
         if self._log_patterns is None:
             self.load_log_patterns()
         return self._log_patterns
+
+    def _get_primary_ip(self) -> str:
+        """
+        Get the primary IP address of the server.
+
+        Returns:
+            IP address as string
+        """
+        try:
+            # Try to get the IP by connecting to an external address (doesn't actually send data)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.settimeout(0)
+            try:
+                # Connect to a public DNS server
+                s.connect(('8.8.8.8', 80))
+                ip_address = s.getsockname()[0]
+            except Exception:
+                # Fallback to hostname resolution
+                ip_address = socket.gethostbyname(socket.gethostname())
+            finally:
+                s.close()
+
+            return ip_address
+        except Exception:
+            return "N/A"

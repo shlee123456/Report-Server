@@ -1,5 +1,6 @@
 system:
   hostname: auto  # auto = detect automatically
+  server_ip: auto  # auto = detect automatically, or set via HOST_IP env var
 
 collection:
   sample_interval: 86400  # 1 day in seconds

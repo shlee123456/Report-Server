@@ -154,11 +154,7 @@ def generate_report(config, thresholds, log_patterns, logger, year=None, month=N
         # Generate PDF
         logger.info("Generating PDF report")
         hostname = config['system']['hostname']
-
-        # Get server IP address
-        monitor = SystemMonitor()
-        system_info = monitor.get_system_info()
-        server_ip = system_info.get('ip_address', 'N/A')
+        server_ip = config['system'].get('server_ip', 'N/A')
 
         filename = config['report']['filename_format'].format(
             hostname=hostname,
