@@ -220,7 +220,7 @@ class PDFGenerator:
             leftIndent=20
         ))
 
-    def add_cover_page(self, hostname: str, year: int, month: int):
+    def add_cover_page(self, hostname: str, server_ip: str, year: int, month: int):
         """Add modern cover page."""
         self.story.append(Spacer(1, 2*inch))
 
@@ -251,6 +251,7 @@ class PDFGenerator:
         # 서버 정보 카드
         info_data = [
             ['서버 이름', hostname],
+            ['서버 IP', server_ip],
             ['보고 기간', f'{year}년 {month}월 1일 ~ {year}년 {month}월 말'],
             ['생성 일시', datetime.now().strftime('%Y년 %m월 %d일 %H:%M')],
         ]
@@ -707,6 +708,7 @@ class PDFGenerator:
     def create_complete_report(
         self,
         hostname: str,
+        server_ip: str,
         year: int,
         month: int,
         metrics_list: List[Dict[str, Any]],
@@ -718,12 +720,12 @@ class PDFGenerator:
         tables: Dict[str, List[List[str]]]
     ):
         """Create complete dashboard-style PDF report."""
-        
+
         # 최신 메트릭
         latest_metrics = metrics_list[-1] if metrics_list else {}
 
         # 1. 표지
-        self.add_cover_page(hostname, year, month)
+        self.add_cover_page(hostname, server_ip, year, month)
 
         # 2. 목차
         self.add_table_of_contents()

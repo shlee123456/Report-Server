@@ -194,11 +194,16 @@ class SystemMonitor:
         """
         try:
             import platform
+            import socket
 
             boot_time = datetime.fromtimestamp(psutil.boot_time())
 
+            # Get primary IP address
+            ip_address = self._get_primary_ip()
+
             return {
                 'hostname': platform.node(),
+                'ip_address': ip_address,
                 'system': platform.system(),
                 'release': platform.release(),
                 'version': platform.version(),
@@ -211,3 +216,31 @@ class SystemMonitor:
         except Exception as e:
             self.logger.error(f"Error collecting system info: {e}")
             return {}
+
+    def _get_primary_ip(self) -> str:
+        """
+        Get the primary IP address of the server.
+
+        Returns:
+            IP address as string
+        """
+        try:
+            import socket
+
+            # Try to get the IP by connecting to an external address (doesn't actually send data)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.settimeout(0)
+            try:
+                # Connect to a public DNS server
+                s.connect(('8.8.8.8', 80))
+                ip_address = s.getsockname()[0]
+            except Exception:
+                # Fallback to hostname resolution
+                ip_address = socket.gethostbyname(socket.gethostname())
+            finally:
+                s.close()
+
+            return ip_address
+        except Exception as e:
+            self.logger.warning(f"Could not determine IP address: {e}")
+            return "N/A"
